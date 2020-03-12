@@ -9,13 +9,8 @@
 
 File myFile;
 
-int pinCS = 53; // Pin 10 on Arduino Uno
-
 void setup() {
-
 	Serial.begin(9600);
-	pinMode(pinCS, OUTPUT);
-
 	// SD Card Initialization
 	if (SD.begin())
 	{
