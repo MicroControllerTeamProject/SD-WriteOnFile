@@ -1,61 +1,84 @@
 /*
- *  Arduino SD Card Tutorial Example
- *
- *  by Dejan Nedelkovski, www.HowToMechatronics.com
- */
+  SD card read/write
 
-#include <SD.h>
+  This example shows how to read and write data to and from an SD card file
+  The circuit:
+   SD card attached to SPI bus as follows:
+ ** MOSI - pin 11
+ ** MISO - pin 12
+ ** CLK - pin 13
+ ** CS - pin 4 (for MKRZero SD: SDCARD_SS_PIN)
+
+  created   Nov 2010
+  by David A. Mellis
+  modified 9 Apr 2012
+  by Tom Igoe
+
+  This example code is in the public domain.
+
+*/
+
 #include <SPI.h>
+#include <SD.h>
 
 File myFile;
 
+String fileName = "test.txt";
+
 void setup() {
+	// Open serial communications and wait for port to open:
 	Serial.begin(9600);
-	// SD Card Initialization
-	if (SD.begin())
-	{
-		Serial.println("SD card is ready to use.");
-		SD.remove("test.txt");
+	while (!Serial) {
+		; // wait for serial port to connect. Needed for native USB port only
 	}
-	else
+
+
+	Serial.print("Initializing SD card...");
+
+	if (!SD.begin(4)) {
+		Serial.println("initialization failed!");
+		while (1);
+	}
+	Serial.println("initialization done.");
+
+	if (SD.exists(fileName))
 	{
-		Serial.println("SD card initialization failed");
-		return;
+		SD.remove(fileName);
 	}
 }
+
 void loop() {
-	// Create/Open file 
-	myFile = SD.open("test.txt", FILE_WRITE);
+	delay(2000);
+	// open the file. note that only one file can be open at a time,
+	// so you have to close this one before opening another.
+	myFile = SD.open(fileName, FILE_WRITE);
 
 	// if the file opened okay, write to it:
 	if (myFile) {
-		//Serial.println("Writing to file...");
-		// Write to file
-		myFile.print("01");
-		myFile.print("\t");
-		myFile.print("B1");
-		myFile.print("\t");
-		myFile.println("1.38");
-		myFile.close(); // close the file
-		//Serial.println("Done.");
+		Serial.print("Writing to file...");
+		myFile.println("writing 1, 2, 3.");
+		// close the file:
+		myFile.close();
+		Serial.println("done.");
 	}
-	// if the file didn't open, print an error:
 	else {
-		Serial.println("error opening test.txt");
+		// if the file didn't open, print an error:
+		Serial.println("error opening file");
 	}
 
-	// Reading the file
-	myFile = SD.open("test.txt");
+	// re-open the file for reading:
+	myFile = SD.open(fileName);
 	if (myFile) {
-		//Serial.println("Read:");
-		// Reading the whole file
+
+		// read from the file until there's nothing else in it:
 		while (myFile.available()) {
 			Serial.write(myFile.read());
 		}
+		// close the file:
 		myFile.close();
 	}
 	else {
-		Serial.println("error opening test.txt");
+		// if the file didn't open, print an error:
+		Serial.println("error opening file");
 	}
-	delay(1000);
 }
